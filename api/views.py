@@ -11,8 +11,8 @@ def say_hello(request):
 
 def getEnv(request):
     if request.method == 'GET':
-        envSet = {(x.env, x.envName) for x in Region.objects.all()}
-        return HttpResponse(json.dumps([{x[0]: x[1]} for x in envSet], ensure_ascii=False))
+        envDict = {x.env: x.envName for x in Region.objects.all()}
+        return HttpResponse(json.dumps(envDict, ensure_ascii=False))
     return HttpResponse('getEnv')
 
 
@@ -20,8 +20,8 @@ def getEnterprise(request):
     if request.method == 'GET':
         env = request.GET.get('env')
         if env:
-            enterpriseSet = {(x.enterprise, x.enterpriseName) for x in Region.objects.filter(env=env)}
-            return HttpResponse(json.dumps([{x[0]: x[1]} for x in enterpriseSet], ensure_ascii=False))
+            enterpriseDict = {x.enterprise: x.enterpriseName for x in Region.objects.filter(env=env)}
+            return HttpResponse(json.dumps(enterpriseDict, ensure_ascii=False))
     return HttpResponse('getEnterprise')
 
 
@@ -30,8 +30,8 @@ def getAccount(request):
     env = request.GET.get('env')
 
     if enterprise and env:
-        accountSet = {(x.account, x.accountName) for x in Region.objects.filter(enterprise=enterprise, env=env)}
-        return HttpResponse(json.dumps([{x[0]: x[1]} for x in accountSet], ensure_ascii=False))
+        accountDict = {x.account: x.accountName for x in Region.objects.filter(enterprise=enterprise, env=env)}
+        return HttpResponse(json.dumps(accountDict, ensure_ascii=False))
     return HttpResponse('getAccount')
 
 
@@ -40,14 +40,14 @@ def getRegion(request):
     env = request.GET.get('env')
     account = request.GET.get('account')
     if enterprise and env and account:
-        regionSet = {(x.region, x.regionName) for x in
-                     Region.objects.filter(enterprise=enterprise, env=env, account=account)}
-        return HttpResponse(json.dumps([{x[0]: x[1]} for x in regionSet], ensure_ascii=False))
-    return HttpResponse('getEnv')
+        regionDict = {x.region: x.regionName for x in
+                      Region.objects.filter(enterprise=enterprise, env=env, account=account)}
+        return HttpResponse(json.dumps(regionDict, ensure_ascii=False))
+    return HttpResponse('getRegion')
 
 
-beta_base_url = "https://his.cloud.com"
-pro_base_url = "https://his-beta.cloud.com"
+pro_base_url = "https://his.cloud.com"
+beta_base_url = "https://his-beta.cloud.com"
 db_code_dict = {
     "MySQL": 'rds',
     "PostgreSQL": 'rds',
@@ -63,13 +63,19 @@ def getUrl(request):
         env = request.GET.get('env')
         account = request.GET.get('account')
         dbType = request.GET.get('dbType')
-        if enterprise and env and account and dbType:
-            if 'pro' in env:
+        region = request.GET.get('region')
+
+        if enterprise and env and account and dbType and region:
+            print("pro" + str(env).lower())
+            if 'pro' in str(env).lower():
+
                 url = pro_base_url
             else:
                 url = beta_base_url
-            region = Region.objects.filter(enterprise=enterprise, env=env, account=account).first()
+            region = Region.objects.all().filter(enterprise=enterprise, env=env, account=account, region=region).first()
+
             csb_url = url + '/csb/cloud-provider/' + region.cloudProvider + '/service/' + db_code_dict[
-                dbType] + '/v3/' + region.projectId + '/instances'
+                dbType] + '/region/' + region.region + '/v3/' + region.projectId + '/instances'
+            print(csb_url)
             return HttpResponse(csb_url)
-    return HttpResponse('getEnv')
+    return HttpResponse('getUrl')
