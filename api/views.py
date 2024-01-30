@@ -46,5 +46,30 @@ def getRegion(request):
     return HttpResponse('getEnv')
 
 
+beta_base_url = "https://his.cloud.com"
+pro_base_url = "https://his-beta.cloud.com"
+db_code_dict = {
+    "MySQL": 'rds',
+    "PostgreSQL": 'rds',
+    "MongoDB": 'dds',
+    "openGauss": 'gaussdb',
+}
+
+
 def getUrl(request):
+    if request.method == 'GET':
+
+        enterprise = request.GET.get('enterprise')
+        env = request.GET.get('env')
+        account = request.GET.get('account')
+        dbType = request.GET.get('dbType')
+        if enterprise and env and account and dbType:
+            if 'pro' in env:
+                url = pro_base_url
+            else:
+                url = beta_base_url
+            region = Region.objects.filter(enterprise=enterprise, env=env, account=account).first()
+            csb_url = url + '/csb/cloud-provider/' + region.cloudProvider + '/service/' + db_code_dict[
+                dbType] + '/v3/' + region.projectId + '/instances'
+            return HttpResponse(csb_url)
     return HttpResponse('getEnv')
