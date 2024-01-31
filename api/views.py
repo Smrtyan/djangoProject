@@ -79,3 +79,17 @@ def getUrl(request):
             print(csb_url)
             return HttpResponse(csb_url)
     return HttpResponse('getUrl')
+
+
+from django.core.handlers.wsgi import WSGIRequest
+
+import json
+
+
+def getInstance(request: WSGIRequest):
+    if request.method == 'POST':
+        bd = json.loads(request.body)
+        print(bd['a'])
+        return HttpResponse('getInstance Post')
+
+    return HttpResponse('getInstance default')

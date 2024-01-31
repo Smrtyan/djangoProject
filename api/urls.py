@@ -24,6 +24,7 @@ urlpatterns = [
     path("account/", views.getAccount),
     path("region/", views.getRegion),
     path("url/", views.getUrl),
+    path("instance/", views.getInstance),
 
 ]
 s = "Long transactions cause dirty data to be written back"
